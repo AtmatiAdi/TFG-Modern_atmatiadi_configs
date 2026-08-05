@@ -49,11 +49,14 @@ gh release upload preset-3.0.0 dist\ram-keeper-3.0.0.zip --clobber
 
 ## 2. Wydanie moda (repozytorium z modami)
 
-Mody nie leżą w tym repozytorium i **nie są tu wyliczane**. Manifest wskazuje samo
-repozytorium; Patcher przegląda jego wydania i znajduje mody sam:
+Mody nie leżą w tym repozytorium i **nie są tu wymieniane** — ta sekcja jest tu tylko po
+to, żeby konwencja tagów była zapisana w jednym miejscu razem z resztą umowy.
+
+Repozytorium z modami wymienia rejestr Patchera (`sources.json` w aplikacji), a Patcher
+przegląda jego wydania i znajduje mody sam:
 
 ```json
-"modSources": [ { "repo": "AtmatiAdi/TFG-Modern_atmatiadi", "group": "mods" } ]
+"mods": [ { "repo": "AtmatiAdi/TFG-Modern_atmatiadi_mods" } ]
 ```
 
 **Wydanie nowego moda nie wymaga niczego poza wydaniem.** Żadnej zmiany w tym

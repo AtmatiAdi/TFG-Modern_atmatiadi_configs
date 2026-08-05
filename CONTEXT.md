@@ -9,13 +9,18 @@ jest, skąd się wzięło i czego **nie** wolno zmieniać bez pomiaru.
 
 | Repo | Co w nim jest | Kiedy tu pracujesz |
 |---|---|---|
-| **to repo** (presety) | `preset.json`, uzasadnienia pomiarowe, shaderpack, narzędzia systemowe | zmiana optymalizacji, nowy profil, nowe narzędzie |
-| **repo z grą** (`TerraFirmaGreg-Modern_Optimisation`) | żywa instancja Prisma, źródła naszych modów (`mapatlas/`), surowe dane pomiarowe | tworzenie modów, zmiana mechaniki, nowe pomiary |
-| **repo Patchera** (`TFG-Modern_Patcher`) | silnik: plan, wykonanie, cofanie. **Zero wiedzy o TFG** | zmiany w samym narzędziu |
+| **to repo** — `TFG-Modern_atmatiadi_configs` | `preset.json`, uzasadnienia pomiarowe, shaderpack, narzędzia systemowe | zmiana optymalizacji, nowy profil, nowe narzędzie |
+| **repo z modami** — `TFG-Modern_atmatiadi_mods` | jary wydawane tagami `<mod>-<x.y.z>` | tworzenie modów, nowa wersja moda |
+| **repo Patchera** — `TFG-Modern_Patcher` | silnik: plan, wykonanie, cofanie. **Zero wiedzy o TFG** | zmiany w samym narzędziu |
 
-Podział powstał 2026-08-05 (historia: `MIGRATION/` w repo Patchera). Powód: każda zmiana
-`renderDistance` wymagała wcześniej przebudowy `.exe` i rozesłania binarki. Teraz preset
-i narzędzie mają własne tempo.
+Podział powstał 2026-08-05. Powód: każda zmiana `renderDistance` wymagała wcześniej
+przebudowy `.exe` i rozesłania binarki. Teraz preset, mody i narzędzie mają własne tempo,
+a Patcher nie zna ani jednej nazwy moda, ani jednej wartości configu — czyta jedno i drugie
+z wydań.
+
+**Modów tu nie ma i nie ma być.** Ich repozytorium wymienia rejestr Patchera
+(`sources.json`), a on znajduje je sam po tagach wydań. To repo odpowiada wyłącznie za
+configi, profile, shaderpack i narzędzia.
 
 ---
 

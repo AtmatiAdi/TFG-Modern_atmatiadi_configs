@@ -79,33 +79,6 @@
     { "id": "tools", "label": "Programy wspierajace", "description": "Narzedzia systemowe uruchamiane obok gry" }
   ],
 
-  "_modSources": [
-    "Repozytoria z modami. NIE WYLICZAMY tu modow - wyliczanie oznaczaloby, ze nowy mod",
-    "wymaga wydania nowego presetu, a to ta sama pulapka, z ktorej wychodzimy.",
-    "",
-    "Patcher przeglada wydania repozytorium, rozklada tagi wg konwencji <mod>-<x.y.z>,",
-    "grupuje po nazwie moda i bierze NAJWYZSZA wersje kazdego. Nowy mod w repozytorium",
-    "pojawia sie w planie sam, jako osobna pozycja do zaznaczenia.",
-    "",
-    "Sekcja 'mods' jest OPCJONALNA - to tylko ladniejsze opisy. Mod, ktorego tu nie ma,",
-    "dziala normalnie z nazwa wziesta z tagu i opisem z notatek wydania."
-  ],
-  "modSources": [
-    {
-      "repo": "AtmatiAdi/TerraFirmaGreg-Modern_Optimisation",
-      "label": "Mody AtmatiAdi",
-      "group": "mods",
-      "side": "both",
-      "prerelease": false,
-      "mods": {
-        "mapatlas": {
-          "name": "Map Atlas",
-          "doc": "mapatlas-mod.md",
-          "why": "Zastepuje Xaero: dane trzymane serwerowo, ekran na zadanie, brak cache terenu w tle."
-        }
-      }
-    }
-  ],
 
   "items": [
     {

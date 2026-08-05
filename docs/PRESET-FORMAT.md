@@ -147,80 +147,26 @@ pokazuje. Pozycja wskazująca nieistniejącą grupę = błąd walidacji.
 
 ---
 
-## 5a. `modSources` — repozytoria z modami (nie: lista modów)
+## 5a. Mody — ich tu nie ma i nie ma być
 
-**Preset nie wylicza modów.** Wylicza **repozytoria**; mody Patcher znajduje sam.
+**Preset nie wymienia modów.** Nie ma na nie miejsca w tym formacie i to jest celowe:
+lista modów w manifeście znaczyłaby, że każdy nowy mod wymaga nowego wydania presetu.
+
+Repozytoria z modami wymienia **rejestr Patchera** — `sources.json` w aplikacji, plus
+`%LOCALAPPDATA%TFG-Patchersources.json` użytkownika:
 
 ```json
-"modSources": [
-  {
-    "repo": "AtmatiAdi/TFG-Modern_atmatiadi",
-    "label": "Mody AtmatiAdi",
-    "group": "mods",
-    "side": "both",
-    "prerelease": false,
-    "only": null,
-    "except": ["testmod"],
-    "mods": {
-      "mapatlas": { "name": "Map Atlas", "why": "...", "doc": "...", "side": "both" }
-    }
-  }
-]
+"mods": [ { "repo": "AtmatiAdi/TFG-Modern_atmatiadi_mods" } ]
 ```
 
-Powód jest ten sam, dla którego robimy całą migrację: **lista modów w manifeście znaczy,
-że nowy mod wymaga nowego wydania presetu.** Repozytorium jako źródło znaczy, że autor
-moda wydaje jar i to wszystko — mod pojawia się w planie u wszystkich, jako osobna
-pozycja do zaznaczenia.
+Patcher przegląda wydania takiego repozytorium i **znajduje mody sam**: rozkłada tagi
+wg konwencji `<mod>-<x.y.z>` (np. `mapatlas-0.4.0`), grupuje po nazwie moda i bierze
+najwyższą wersję każdego. Autor moda wydaje jar i to wszystko — mod pojawia się w planie
+jako osobna pozycja do zaznaczenia.
 
-### Konwencja tagów — jedyne, na co trzeba się umówić
-
-```
-<mod>-<x.y.z>            mapatlas-0.4.0   ferrite-tweaks-1.2   map-atlas-v1.2.3
-```
-
-Patcher przegląda wydania repozytorium, rozkłada tagi, **grupuje po nazwie moda i bierze
-najwyższą wersję każdego**. Jedno wydanie = jeden mod w jednej wersji; nie trzeba dopinać
-jarów pozostałych modów ani rozbijać modów na osobne repozytoria.
-
-| Zasada | Szczegół |
-|---|---|
-| wersja | segmenty liczbowe, porównywane **liczbowo**: `0.10.0` > `0.9.0`, `10.0.0` > `2.0.0`; `v` z przodu wolno |
-| nazwa moda | wszystko przed ostatnim `-<wersja>`; myślniki w nazwie są w porządku (`map-atlas-1.2.3` → `map-atlas`) |
-| tag bez wersji | pomijany z wpisem w logu — `v1.0`, `mapatlas`, `mapatlas-0.4.0-beta` nie wejdą |
-| załączniki | brane są `.jar` zaczynające się od nazwy moda; gdy takich nie ma — wszystkie `.jar` z wydania |
-| wydanie bez `.jar` | pomijane (tak odpadają tagi w rodzaju `TFG-1.20.1`) |
-| drafty | zawsze pomijane |
-| prereleasy | pomijane, chyba że źródło ma `"prerelease": true` — to jest kanał testowy |
-| usuwanie starszych | wyprowadzane z nazwy moda (`<mod>-*.jar`), nikt tego nie wpisuje i nie da się zapomnieć |
-
-### Pola źródła
-
-| Pole | Wymagane | Znaczenie |
-|---|---|---|
-| `repo` | tak | `wlasciciel/repozytorium`; **musi być publiczne** |
-| `label` | nie | nazwa źródła pokazywana przy pozycjach |
-| `group` | nie | grupa dla znalezionych modów (domyślnie `mods`) |
-| `side` | nie | domyślna strona dla modów z tego repo (domyślnie `both`) |
-| `prerelease` | nie | czy brać prereleasy (domyślnie `false`) |
-| `only` | nie | biała lista nazw modów; `null` = wszystkie |
-| `except` | nie | czarna lista nazw modów |
-| `mods` | nie | **opcjonalne** opisy: `name`, `why`, `doc`, `side` per mod |
-
-`mods` służy wyłącznie temu, żeby pozycja ładnie wyglądała. Mod, którego tam nie ma,
-działa normalnie: nazwa z tagu, opis z pierwszej linii notatek wydania.
-
-Pozycja planu dostaje `id` = `mod-<nazwa moda>` — **stabilne między wersjami**, więc
-dziennik cofania i `--only` działają po aktualizacji moda. Znalezione mody trafiają do
-swojej grupy **po** pozycjach wypisanych w `items`, w kolejności alfabetycznej.
-
-### Kiedy mimo to użyć `installRelease`
-
-Gdy repozytorium **nie trzyma naszej konwencji** — cudzy mod na GitHubie, wydawany tagami
-`release-2024-11` albo `v3`. Wtedy wskazujesz repo i maskę załącznika ręcznie (§8).
-Dla własnych repozytoriów to niepotrzebne i szkodliwe: wraca problem, od którego uciekamy.
-
----
+Preset odpowiada wyłącznie za **configi, profile, shaderpack i narzędzia**. Jedyny
+wyjątek to `installRelease` (§8) — przypięcie konkretnego pliku z cudzego wydania, gdy
+jakiś zasób musi iść razem z configiem.
 
 ## 6. `items` — pozycje planu
 
