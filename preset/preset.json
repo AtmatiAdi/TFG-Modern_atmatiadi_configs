@@ -1,0 +1,311 @@
+{
+  "_": [
+    "MANIFEST PRESETU - zrodlo prawdy dla tego, co Patcher proponuje zrobic.",
+    "",
+    "Patcher NIE ZNA zadnej z tych pozycji. Pobiera ten plik z wydania tego",
+    "repozytorium i buduje z niego plan. Zmiana optymalizacji = zmiana TEGO pliku",
+    "i nowe wydanie - bez przebudowy .exe.",
+    "",
+    "Kazda pozycja musi miec sekcje w docs/OPTIMIZATIONS-SPEC.md (pole 'doc').",
+    "Pozycja bez uzasadnienia pomiarowego to pozycja, ktorej nikt za pol roku nie",
+    "odwazy sie ruszyc ani usunac.",
+    "",
+    "Format i slownik operacji: docs/PRESET-FORMAT.md",
+    "Jak wydac: docs/RELEASING.md"
+  ],
+
+  "formatVersion": 1,
+  "id": "tfg-modern",
+  "name": "TerraFirmaGreg-Modern - stan optymalizacyjny",
+  "version": "3.0.0",
+  "minPatcher": "3.1.0",
+
+  "pack": {
+    "minecraft": "1.20.1",
+    "loader": "forge",
+    "loaderVersion": "47.4.13",
+    "modpack": "TFG-Modern 0.13.1"
+  },
+
+  "docs": "https://github.com/AtmatiAdi/TerraFirmaGreg-Modern_Presets/blob/master/docs/OPTIMIZATIONS-SPEC.md",
+
+  "vars": {
+    "shaderpack": "TerraFirmaGreg-Shaders-Complementary-3.1.5.zip",
+
+    "_jvmArgs": [
+      "Flagi JVM - OPTIMIZATIONS-SPEC.md sekcja D. Zmierzone: commit 13,1 -> 10,1 GB.",
+      "Trzy srodkowe (MinHeapFreeRatio / MaxHeapFreeRatio / G1PeriodicGCInterval) to te,",
+      "ktore zmuszaja G1 do oddania pustej sterty systemowi. NIE dodawac AlwaysPreTouch."
+    ],
+    "jvmArgs": [
+      "-XX:+UseG1GC",
+      "-XX:MaxGCPauseMillis=50",
+      "-XX:G1HeapRegionSize=8M",
+      "-XX:MinHeapFreeRatio=10",
+      "-XX:MaxHeapFreeRatio=30",
+      "-XX:G1PeriodicGCInterval=15000",
+      "-XX:G1PeriodicGCSystemLoadThreshold=0",
+      "-XX:+UseStringDeduplication",
+      "-XX:NativeMemoryTracking=summary"
+    ]
+  },
+
+  "profiles": [
+    {
+      "id": "standard",
+      "label": "Standard",
+      "description": "nasz standard: renderDistance 8, Xmx 6 GB",
+      "default": true,
+      "vars": { "renderDistance": 8, "xmx": 6144 }
+    },
+    {
+      "id": "high",
+      "label": "High",
+      "description": "mocne GPU i zapas RAM: renderDistance 24, Xmx 8 GB",
+      "vars": { "renderDistance": 24, "xmx": 8192 }
+    },
+    {
+      "id": "server",
+      "label": "Serwer",
+      "description": "serwer dedykowany: tylko zmiany serwerowe",
+      "side": "server",
+      "vars": { "renderDistance": 0, "xmx": 6144 }
+    }
+  ],
+
+  "groups": [
+    { "id": "optimizations", "label": "Optymalizacje", "description": "RAM, configi, flagi JVM - wypracowane pomiarami" },
+    { "id": "mods", "label": "Mody i zasoby", "description": "Wydania z repozytoriow + shaderpack" },
+    { "id": "tools", "label": "Programy wspierajace", "description": "Narzedzia systemowe uruchamiane obok gry" }
+  ],
+
+  "_modSources": [
+    "Repozytoria z modami. NIE WYLICZAMY tu modow - wyliczanie oznaczaloby, ze nowy mod",
+    "wymaga wydania nowego presetu, a to ta sama pulapka, z ktorej wychodzimy.",
+    "",
+    "Patcher przeglada wydania repozytorium, rozklada tagi wg konwencji <mod>-<x.y.z>,",
+    "grupuje po nazwie moda i bierze NAJWYZSZA wersje kazdego. Nowy mod w repozytorium",
+    "pojawia sie w planie sam, jako osobna pozycja do zaznaczenia.",
+    "",
+    "Sekcja 'mods' jest OPCJONALNA - to tylko ladniejsze opisy. Mod, ktorego tu nie ma,",
+    "dziala normalnie z nazwa wziesta z tagu i opisem z notatek wydania."
+  ],
+  "modSources": [
+    {
+      "repo": "AtmatiAdi/TerraFirmaGreg-Modern_Optimisation",
+      "label": "Mody AtmatiAdi",
+      "group": "mods",
+      "side": "both",
+      "prerelease": false,
+      "mods": {
+        "mapatlas": {
+          "name": "Map Atlas",
+          "doc": "mapatlas-mod.md",
+          "why": "Zastepuje Xaero: dane trzymane serwerowo, ekran na zadanie, brak cache terenu w tle."
+        }
+      }
+    }
+  ],
+
+  "items": [
+    {
+      "id": "aaa-particles-gc",
+      "group": "optimizations",
+      "side": "client",
+      "title": "Effekseer: auto-zwalnianie pamieci czastek pod presja RAM",
+      "doc": "OPTIMIZATIONS-SPEC.md sekcja A1",
+      "why": "Zwalnia do ~1 GB natywnej pamieci czastek, gdy wolny RAM spada ponizej ~1,5 GB.",
+      "changes": [
+        {
+          "op": "setKey",
+          "file": "config/aaa_particles-client.toml",
+          "style": "toml",
+          "section": "gc",
+          "key": "enabled",
+          "value": "true"
+        }
+      ]
+    },
+
+    {
+      "id": "ferritecore-compact",
+      "group": "optimizations",
+      "side": "both",
+      "title": "FerriteCore: kompaktowa reprezentacja block states",
+      "doc": "OPTIMIZATIONS-SPEC.md sekcja A3",
+      "why": "Mniejsza reprezentacja stanow blokow. Koszt: minimalnie wolniejsze odczyty.",
+      "changes": [
+        {
+          "op": "setKey",
+          "file": "config/ferritecore-mixin.toml",
+          "style": "toml",
+          "key": "compactFastMap",
+          "value": "true"
+        }
+      ]
+    },
+
+    {
+      "id": "alltheleaks-guard",
+      "group": "optimizations",
+      "side": "both",
+      "title": "AllTheLeaks: pilnowanie, ze dedup sterty POZOSTAJE wylaczony",
+      "doc": "OPTIMIZATIONS-SPEC.md sekcja A2",
+      "why": "Wlaczenie dedupu wywala gre przy wejsciu do swiata (ATLUnsupportedOperation).",
+      "changes": [
+        { "op": "setJson", "file": "config/alltheleaks.json", "key": "ingredientDedupe", "value": "false" },
+        { "op": "setJson", "file": "config/alltheleaks.json", "key": "resourceLocationDedupe", "value": "false" }
+      ]
+    },
+
+    {
+      "id": "modernfix-dynres",
+      "group": "optimizations",
+      "side": "client",
+      "title": "ModernFix: leniwe ladowanie modeli i tekstur",
+      "doc": "OPTIMIZATIONS-SPEC.md sekcja A4",
+      "why": "Najwieksza galka ModernFixa - modele i tekstury ladowane na zadanie.",
+      "changes": [
+        {
+          "op": "setKey",
+          "file": "config/modernfix-mixins.properties",
+          "style": "properties",
+          "key": "mixin.perf.dynamic_resources",
+          "value": "true"
+        }
+      ]
+    },
+
+    {
+      "id": "game-options",
+      "group": "optimizations",
+      "side": "client",
+      "title": "options.txt: simulationDistance, mipmapLevels, entityShadows, particles",
+      "doc": "OPTIMIZATIONS-SPEC.md sekcja C",
+      "why": "Mniej tykanych chunkow, mniej VRAM na mipmapy, drobne zyski GPU.",
+      "changes": [
+        { "op": "setKey", "file": "options.txt", "style": "options", "key": "simulationDistance", "value": "8" },
+        { "op": "setKey", "file": "options.txt", "style": "options", "key": "mipmapLevels", "value": "2" },
+        { "op": "setKey", "file": "options.txt", "style": "options", "key": "entityShadows", "value": "false" },
+        { "op": "setKey", "file": "options.txt", "style": "options", "key": "particles", "value": "0" }
+      ]
+    },
+
+    {
+      "id": "render-distance",
+      "group": "optimizations",
+      "side": "client",
+      "title": "options.txt: renderDistance wg profilu",
+      "doc": "OPTIMIZATIONS-SPEC.md sekcja C + E",
+      "why": "Najwieksza galka RAM po stronie gry - dane i meshe chunkow rosna kwadratowo.",
+      "changes": [
+        { "op": "setKey", "file": "options.txt", "style": "options", "key": "renderDistance", "value": "{renderDistance}" }
+      ]
+    },
+
+    {
+      "id": "prism-jvm",
+      "group": "optimizations",
+      "side": "client",
+      "title": "Prism: flagi JVM (G1 oddaje pamiec) + Xmx/Xms",
+      "doc": "OPTIMIZATIONS-SPEC.md sekcja D",
+      "why": "Zmierzone: commit 13,1 -> 10,1 GB. G1 trzymal 3,8 GB pustej sterty i nie oddawal.",
+      "changes": [
+        { "op": "setKey", "file": "@instance/instance.cfg", "style": "ini", "section": "General", "key": "OverrideJavaArgs", "value": "true" },
+        { "op": "setKey", "file": "@instance/instance.cfg", "style": "ini", "section": "General", "key": "OverrideMemory", "value": "true" },
+        { "op": "setKey", "file": "@instance/instance.cfg", "style": "ini", "section": "General", "key": "MinMemAlloc", "value": "512" },
+        { "op": "setKey", "file": "@instance/instance.cfg", "style": "ini", "section": "General", "key": "MaxMemAlloc", "value": "{xmx}" },
+        { "op": "setKey", "file": "@instance/instance.cfg", "style": "ini", "section": "General", "key": "JvmArgs", "value": "\"{jvmArgs}\"" }
+      ]
+    },
+
+    {
+      "_": "Po swiezej instalacji shaderpacka plik ustawien juz NIESIE te wartosci - ta pozycja jest straznikiem na wypadek, gdy ktos ma pakiet wgrany po swojemu.",
+      "id": "shaders-light",
+      "group": "optimizations",
+      "side": "client",
+      "title": "Shadery: profil 'light' (mniej pamieci, wyglad zachowany)",
+      "doc": "OPTIMIZATIONS-SPEC.md sekcja B",
+      "why": "Woksele kolorowego swiatla 4x mniejsze, mniejsza mapa cieni, bez anizotropii.",
+      "changes": [
+        { "op": "setKey", "file": "shaderpacks/{shaderpack}.txt", "style": "properties", "key": "COLORED_LIGHTING", "value": "32" },
+        { "op": "setKey", "file": "shaderpacks/{shaderpack}.txt", "style": "properties", "key": "shadowDistance", "value": "48.0" },
+        { "op": "setKey", "file": "shaderpacks/{shaderpack}.txt", "style": "properties", "key": "ANISOTROPIC_FILTER", "value": "0" }
+      ]
+    },
+
+    {
+      "id": "shaderpack",
+      "group": "mods",
+      "side": "client",
+      "title": "Shaderpack {shaderpack}",
+      "doc": "OPTIMIZATIONS-SPEC.md sekcja B + F",
+      "why": "Pakietu NIE MA w bazowej paczce z CurseForge - dolozylismy go recznie.",
+      "changes": [
+        { "op": "installAsset", "asset": "{shaderpack}", "target": "shaderpacks/{shaderpack}", "onlyIfMissing": true },
+        { "op": "installAsset", "asset": "{shaderpack}.txt", "target": "shaderpacks/{shaderpack}.txt", "onlyIfMissing": true },
+        { "op": "setKey", "file": "config/oculus.properties", "style": "properties", "key": "shaderPack", "value": "{shaderpack}" },
+        { "op": "setKey", "file": "config/oculus.properties", "style": "properties", "key": "enableShaders", "value": "true" }
+      ]
+    },
+
+    {
+      "_": "TAKZE NA SERWERZE. Xaero nie ustawia displayTest, wiec Forge wymusza zgodnosc listy modow: serwer z Xaero ODRZUCA klienta, ktory go nie ma.",
+      "id": "xaero-off",
+      "group": "mods",
+      "side": "both",
+      "title": "Wylaczenie Xaero (minimapa, worldmap, most FTB)",
+      "doc": "OPTIMIZATIONS-SPEC.md sekcja G",
+      "why": "Xaero trzyma w RAM kafle map i renderuje minimape co klatke. Zastapione mapatlasem. Na serwerze konieczne takze dlatego, ze serwer z Xaero nie wpusci klienta bez Xaero.",
+      "changes": [
+        {
+          "op": "disableMods",
+          "prefixes": ["xaerominimap", "xaeroworldmap", "ftbxaerocompat"],
+          "scan": {
+            "_": "Waskie prefiksy pakietow. NIE ma tu 'xaero/pac/' - to Open Parties and Claims, inny mod tego samego autora.",
+            "tokens": ["xaero/common/", "xaero/map/", "xaero/hud/", "xaero/minimap/"]
+          }
+        }
+      ]
+    },
+
+    {
+      "_": [
+        "Prism uruchamia PreLaunchCommand i CZEKA na jego zakonczenie, dlatego .cmd tylko",
+        "odpala odseparowany, podniesiony proces i natychmiast wraca. Skrypt sam czeka na",
+        "pojawienie sie procesu gry i konczy sie, gdy gra znika."
+      ],
+      "id": "ram-keeper",
+      "group": "tools",
+      "side": "client",
+      "title": "RAM Keeper: cykliczne zwalnianie pamieci w tle gry",
+      "doc": "OPTIMIZATIONS-SPEC.md sekcja H",
+      "why": "Co minute oddaje systemowi working sety pozostalych procesow i czysci liste standby; sam proces gry rusza dopiero, gdy wolny RAM spadnie ponizej progu. Wymaga uprawnien administratora - pyta o nie przy starcie gry. W profilu High odznaczone: maszyna z zapasem RAM nie ma czego odzyskiwac, a okno UAC przy kazdym starcie gry byloby placeniem za nic.",
+      "selected": { "high": false },
+      "changes": [
+        {
+          "op": "installAsset",
+          "asset": "ram-keeper-*.zip",
+          "target": "@tools/ram-keeper",
+          "unpack": "zip"
+        },
+        {
+          "op": "setKey",
+          "file": "@instance/instance.cfg",
+          "style": "ini",
+          "section": "General",
+          "key": "OverrideCommands",
+          "value": "true"
+        },
+        {
+          "op": "setKey",
+          "file": "@instance/instance.cfg",
+          "style": "ini",
+          "section": "General",
+          "key": "PreLaunchCommand",
+          "value": "\"{toolsDir}\\ram-keeper\\ram-keeper.cmd\""
+        }
+      ]
+    }
+  ]
+}

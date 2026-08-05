@@ -1,0 +1,6 @@
+# Zalaczniki wydania skladane przez build/pack.ps1 - powstaja z tego, co w repo
+dist/
+
+# Windows
+Thumbs.db
+desktop.ini
