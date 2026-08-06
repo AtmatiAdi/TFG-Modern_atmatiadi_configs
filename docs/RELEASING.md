@@ -52,12 +52,17 @@ gh release upload preset-3.0.0 dist\ram-keeper-3.0.0.zip --clobber
 Mody nie leżą w tym repozytorium i **nie są tu wymieniane** — ta sekcja jest tu tylko po
 to, żeby konwencja tagów była zapisana w jednym miejscu razem z resztą umowy.
 
-Repozytorium z modami wymienia rejestr Patchera (`sources.json` w aplikacji), a Patcher
-przegląda jego wydania i znajduje mody sam:
+Repozytorium z modami wymienia rejestr Patchera — `sources.json` w aplikacji plus plik
+użytkownika `%LOCALAPPDATA%\TFG-Patcher\sources.json`. Patcher przegląda jego wydania
+i znajduje mody sam:
 
 ```json
-"mods": [ { "repo": "AtmatiAdi/TFG-Modern_atmatiadi_mods" } ]
+{ "repos": [ { "repo": "AtmatiAdi/TFG-Modern_atmatiadi_mods" } ] }
 ```
+
+**Jedna lista, repozytorium nie ma rodzaju**: każde jest sprawdzane pod obie konwencje, więc
+to samo repo może wydawać i mody, i preset. (Starsze klucze `"mods"` / `"configs"` są nadal
+czytane, ale wpadają do tej samej listy.)
 
 **Wydanie nowego moda nie wymaga niczego poza wydaniem.** Żadnej zmiany w tym
 repozytorium, żadnego nowego presetu, żadnego nowego `.exe` — mod pojawi się w planie
@@ -108,10 +113,13 @@ gh release create mapatlas-0.4.0 `
 
 ### Dołożenie moda współpracownika
 
-Jego repozytorium dopisujesz **raz** do `modSources` — od tego momentu wszystkie jego mody,
-także te wydane później, pojawiają się same. Jeśli nie trzyma konwencji tagów, zostaje
-`installRelease` z maską (`PRESET-FORMAT.md` §8), ale wtedy każdy jego nowy mod znów
+Jego repozytorium dopisujesz **raz** do `repos` w `sources.json` — od tego momentu wszystkie
+jego mody, także te wydane później, pojawiają się same. Jeśli nie trzyma konwencji tagów,
+zostaje `installRelease` z maską (`PRESET-FORMAT.md` §8), ale wtedy każdy jego nowy mod znów
 wymaga wydania presetu — więc lepiej się umówić na tagi.
+
+Sam sobie każdy dopisze repozytorium bez czekania na nowy `.exe`: plik użytkownika
+`%LOCALAPPDATA%\TFG-Patcher\sources.json` dokłada się do wbudowanego.
 
 ---
 
@@ -143,12 +151,14 @@ Jest bezpieczna: GitHub przekierowuje stare adresy, także w API, a klient Patch
 za przekierowaniami. Wydania u ludzi, którzy mają starą nazwę w cache, nie przestaną
 działać z dnia na dzień.
 
-Mimo to **popraw nazwę w `modSources` i wydaj preset** — przekierowanie znika, gdy ktoś
-założy nowe repozytorium o starej nazwie, a poza tym wpis ma mówić prawdę. To jedna linia
-w manifeście, bez dotykania Patchera.
+Mimo to **popraw nazwę w `sources.json`** — przekierowanie znika, gdy ktoś założy nowe
+repozytorium o starej nazwie, a poza tym wpis ma mówić prawdę. Uwaga: od 3.1.0 lista
+repozytoriów **nie leży już w manifeście**, tylko po stronie Patchera, więc poprawka
+w liście wbudowanej to jedna linia **w repozytorium Patchera** i nowy `.exe`. Kto nie chce
+czekać, dopisuje repo u siebie — plik użytkownika dokłada się do wbudowanego.
 
 Nazwa z użytkownikiem w środku (`TFG-Modern_atmatiadi`) jest **sensowną konwencją** przy
-wielu współpracownikach: od razu widać, czyje mody są w którym repozytorium, a `modSources`
+wielu współpracownikach: od razu widać, czyje mody są w którym repozytorium, a `sources.json`
 i tak wymienia je z pełną nazwą `wlasciciel/repo`.
 
 ---

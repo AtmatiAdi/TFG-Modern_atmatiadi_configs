@@ -118,10 +118,15 @@ sufitu sterty tylko zagoniłby GC).
 
 ## Stan i co dalej
 
-- Preset **3.0.0** = jeden do jednego to, co Patcher 3.0.0 miał zaszyte w kodzie:
-  12 pozycji, 27 operacji, 3 profile.
+- Preset **3.0.0** = to, co Patcher 3.0.0 miał zaszyte w kodzie: **11 pozycji, 26 operacji,
+  3 profile** (`node build/validate.js preset.json` wypisuje te liczby na końcu — jeśli się
+  nie zgadzają, to ten wiersz jest nieaktualny, nie preset).
 - **`ram-keeper` czeka na pomiar.** Działanie potwierdzone (+2,1 GB w cyklu, bez admina,
   na maszynie testowej), ale **nie ma pomiaru w grze** — sekcja H spec-u mówi o tym wprost.
   Pierwsza sesja z grą: commit przed/po, do `docs/ram/FINDINGS.md`.
-- Model „wielu współpracowników, każdy z własnym repo" obsługuje `installRelease`; na
-  razie wpisany jest jeden mod (`mapatlas`).
+- Model „wielu współpracowników, każdy z własnym repo" obsługuje **`sources.json` po
+  stronie Patchera** — jedna lista repozytoriów, każde sprawdzane pod obie konwencje.
+  W presecie **nie ma dziś ani jednego `installRelease`** i to jest stan docelowy: ta
+  operacja została do repozytoriów, które nie trzymają konwencji tagów `<mod>-<x.y.z>`.
+  (Poprzednio listę repozytoriów z modami niósł manifest, w polu `modSources` — Patcher
+  nie zna już tego pola.)

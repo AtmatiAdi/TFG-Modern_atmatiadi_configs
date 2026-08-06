@@ -3,9 +3,13 @@
 **Wersja formatu: 1.**
 
 Ten dokument jest **umową**. Patcher implementuje dokładnie to, co tu opisane, i nic
-ponadto; repozytorium presetów nie wolno użyć niczego, czego tu nie ma. Kopia tego pliku
-leży w obu repozytoriach — zmiana formatu to zmiana **obu** kopii naraz i podbicie
-`formatVersion`.
+ponadto; repozytorium presetów nie wolno użyć niczego, czego tu nie ma.
+
+**Ten plik jest jedyny** — leży tutaj, a repozytorium Patchera na niego wskazuje
+(`README.md`, `docs/PATCHER.md`), zamiast trzymać kopię, która i tak by się rozjechała.
+Zmiana formatu to trzy rzeczy naraz: ten opis, implementacja po stronie Patchera
+i podbicie `formatVersion`. Trzecia jest po to, żeby starszy Patcher **odrzucił** manifest,
+którego nie umie wykonać, zamiast wykonać go połowicznie.
 
 Zasada nadrzędna: **Patcher nie wie nic o TerraFirmaGreg.** Nie zna nazwy żadnego moda,
 żadnego klucza configu, żadnej flagi JVM. Umie tylko: pobrać manifest z wydania, zbudować
