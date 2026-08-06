@@ -15,8 +15,10 @@ z niego plan, sprawdzić stan i wykonać zaznaczone pozycje odwracalnie.
 
 ## 1. Skąd Patcher bierze manifest
 
-Patcher ma listę **repozytoriów presetów** (wbudowane domyślne + dodane przez użytkownika,
-patrz `PATCHER-CHANGES.md` §2). Dla każdego z nich:
+Patcher ma **jedną listę repozytoriów** — `sources.json` w aplikacji plus plik użytkownika
+`%LOCALAPPDATA%\TFG-Patcher\sources.json` (§5a). Repozytorium **nie ma rodzaju**: każde jest
+sprawdzane pod obie konwencje, więc jeden autor wydaje z jednego repo i mody, i configi.
+Dla każdego z nich:
 
 1. pyta GitHuba o najnowsze wydanie zawierające załącznik `preset-*.json`,
 2. pobiera **tylko ten plik** (kilkanaście KB) i waliduje,
@@ -90,13 +92,17 @@ Nieznana nazwa w klamrach = **błąd walidacji**, nie puste podstawienie. Litera
 | `{instanceDir}` | katalog instancji (ten z `instance.cfg`) |
 | `{gameDir}` | katalog gry (`minecraft/` w Prismie, sam katalog przy serwerze) |
 | `{toolsDir}` | `{instanceDir}\.tfg-patcher\tools` — tam lądują narzędzia |
-| `{profile}` | id wybranego profilu |
+| `{profile}` | id profilu, wg którego liczony jest **ten** preset (§4) — wybrany, a gdy preset go nie zna: jego własny `default`. Preset bez profili dostaje `standard` |
 
 Separatory ścieżek są **natywne dla systemu** — w `{toolsDir}` na Windowsie backslashe.
 
 ---
 
-## 4. `profiles`
+## 4. `profiles` — pole opcjonalne
+
+**Preset nie musi deklarować profili.** Preset dokładający same pliki — configi jednego
+moda, KubeJS, resourcepack — nie ma czego profilować, a profile i tak są wspólne dla
+całego planu: narzuca je ten preset, który je przynosi.
 
 ```json
 { "id": "standard", "label": "Standard", "description": "...",
@@ -106,7 +112,7 @@ Separatory ścieżek są **natywne dla systemu** — w `{toolsDir}` na Windowsie
 | Pole | Znaczenie |
 |---|---|
 | `id`, `label`, `description` | identyfikator i to, co widać w oknie |
-| `default` | profil zaznaczony na starcie; dokładnie jeden w manifeście |
+| `default` | profil zaznaczony na starcie; dokładnie jeden — ale wymagany dopiero wtedy, gdy manifest deklaruje jakikolwiek profil |
 | `side` | `client` \| `server` \| `both` (domyślnie `both`) — profil serwerowy Patcher wybiera sam, gdy wykryje serwer |
 | `vars` | wartości przesłaniające `vars` presetu |
 
@@ -134,6 +140,21 @@ swoje pozycje z własnego profilu `default` — dzięki temu cudzy preset nie zn
 tylko dlatego, że nie słyszał o naszym „high". Stąd zalecenie: **trzymać się wspólnych
 `id`** (`standard` / `high` / `server`), a różnicować wartości, nie nazwy.
 
+### Preset bez profili
+
+Nic nie znika i nic nie trzeba deklarować „na wszelki wypadek":
+
+- pozycje liczą się z samych `vars` presetu — profil nie ma czego przesłonić,
+- w selektorze profili taki preset nie ma głosu; użytkownik wybiera spośród profili
+  przyniesionych przez **inne** presety, a ten dokłada swoje pozycje do każdego,
+- `selected` (§6) wolno mu mimo to wskazywać **cudze** `id` profilu (np. `"server": false`) —
+  nazwy profili są sprawdzane tylko wtedy, gdy manifest sam jakieś deklaruje.
+
+Gdy profili nie przyniesie **żadne** źródło, okno pokazuje jeden profil wbudowany,
+`standard`, **bez wartości optymalizacyjnych** — istnieje po to, żeby selektor miał co
+pokazać, zanim cokolwiek zostanie pobrane. `renderDistance` i `MaxMemAlloc` są wtedy puste,
+bo nie ma ich skąd wziąć; Patcher ich **nie zmyśla**.
+
 ---
 
 ## 5. `groups`
@@ -153,11 +174,16 @@ pokazuje. Pozycja wskazująca nieistniejącą grupę = błąd walidacji.
 lista modów w manifeście znaczyłaby, że każdy nowy mod wymaga nowego wydania presetu.
 
 Repozytoria z modami wymienia **rejestr Patchera** — `sources.json` w aplikacji, plus
-`%LOCALAPPDATA%TFG-Patchersources.json` użytkownika:
+`%LOCALAPPDATA%\TFG-Patcher\sources.json` użytkownika. Jedna lista, bez rodzajów:
 
 ```json
-"mods": [ { "repo": "AtmatiAdi/TFG-Modern_atmatiadi_mods" } ]
+{ "repos": [ { "repo": "AtmatiAdi/TFG-Modern_atmatiadi_mods" } ] }
 ```
+
+To samo repozytorium może wydawać mody **i** preset — Patcher sprawdza każde pod obie
+konwencje. Starsze klucze `"mods"` i `"configs"` są nadal czytane (leżą w plikach
+użytkownika i w starszych wydaniach), ale wpadają do tej samej listy: **rodzaj
+repozytorium przestał cokolwiek znaczyć**.
 
 Patcher przegląda wydania takiego repozytorium i **znajduje mody sam**: rozkłada tagi
 wg konwencji `<mod>-<x.y.z>` (np. `mapatlas-0.4.0`), grupuje po nazwie moda i bierze
@@ -207,8 +233,11 @@ albo ma sens tylko na części maszyn.
 
 Wartość: `true`/`false` albo obiekt `id profilu → bool` z opcjonalnym kluczem `"*"` dla
 pozostałych. Brak wpisu i brak `"*"` = zachowanie domyślne (zaznacz, gdy `todo`).
+
 Nieznany id profilu w obiekcie = **błąd walidacji** (literówka w nazwie profilu byłaby
-inaczej niewidoczna).
+inaczej niewidoczna) — ale **tylko w manifeście, który sam deklaruje profile**. Preset bez
+profili (§4) wolno odwołać się do cudzych `id`, bo nie ma jak ich znać z wyprzedzeniem;
+nazwa, której nikt nie przyniósł, po prostu nie zadziała.
 
 To wpływa **wyłącznie na początkowy stan pola wyboru**. Pozycja nadal jest widoczna
 w planie ze swoim stanem, użytkownik nadal może ją zaznaczyć ręcznie, i nadal nic się nie
@@ -303,8 +332,8 @@ Załącznik nieściągnięty → pozycja widoczna ze stanem „brak celu" i info
   "target": "mods/", "replaceGlob": "innymod-*.jar" }
 ```
 
-**Do repozytoriów, które nie trzymają konwencji tagów.** Dla własnych używa się
-`modSources` (§5a) — wtedy nowy mod nie wymaga wydania presetu.
+**Do repozytoriów, które nie trzymają konwencji tagów.** Repozytorium trzymające konwencję
+dopisuje się do `repos` w `sources.json` (§5a) — wtedy nowy mod nie wymaga wydania presetu.
 
 Patcher szuka **najnowszego wydania zawierającego załącznik pasujący do maski** — nie po
 prostu `releases/latest`. Nazwa pliku docelowego = nazwa załącznika, gdy `target` kończy
@@ -356,9 +385,10 @@ sprawdza go **ponownie po pobraniu** i odrzuca całość, gdy coś się nie zgad
 pokazać „preset uszkodzony", niż wykonać połowę.
 
 Sprawdzane jest: `formatVersion`, komplet pól wymaganych, unikalność `id`, istnienie
-grup i profili, znane `op` i `style`, wszystkie `{zmienne}` rozwiązywalne, ścieżki bez
-wyjścia poza instancję, `disableMods` z niepustym `scan.tokens`, dokładnie jeden profil
-`default`.
+grup, znane `op` i `style`, wszystkie `{zmienne}` rozwiązywalne, ścieżki bez wyjścia poza
+instancję, `disableMods` z niepustym `scan.tokens`. Profile — **gdy manifest je deklaruje**:
+unikalne `id`, poprawny `side`, dokładnie jeden `default` i sprawdzone nazwy w `selected`.
+Manifest bez profili przechodzi walidację; brak grup to nadal błąd.
 
 ---
 

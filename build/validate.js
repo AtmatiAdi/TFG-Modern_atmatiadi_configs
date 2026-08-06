@@ -97,21 +97,29 @@ function validate(preset, assetsDir) {
   }
 
   // --- profile
+  // Profile sa OPCJONALNE (PRESET-FORMAT.md par. 4): preset dokladajacy same pliki nie ma
+  // czego profilowac, a profile i tak sa wspolne dla calego planu - narzuca je ten preset,
+  // ktory je przynosi. "Dokladnie jeden default" obowiazuje dopiero, gdy profile w ogole sa.
   const profileVars = new Set();
   const profileIds = new Set();
-  if (need(preset, 'profiles', 'preset', 'array')) {
-    const ids = profileIds;
-    let defaults = 0;
-    preset.profiles.forEach((p, i) => {
-      const w = `profiles[${i}]`;
-      ['id', 'label'].forEach(f => need(p, f, w, 'string'));
-      if (ids.has(p.id)) err(w, `powtorzone id profilu "${p.id}"`);
-      ids.add(p.id);
-      if (p.default === true) defaults++;
-      if (p.side && !SIDES.includes(p.side)) err(w, `side musi byc jednym z: ${SIDES.join(', ')}`);
-      if (p.vars) Object.keys(p.vars).forEach(k => profileVars.add(k));
-    });
-    if (defaults !== 1) err('profiles', `dokladnie jeden profil ma miec "default": true (jest ${defaults})`);
+  if (preset.profiles !== undefined) {
+    if (!Array.isArray(preset.profiles)) {
+      err('preset', '"profiles" musi byc lista');
+    } else {
+      let defaults = 0;
+      preset.profiles.forEach((p, i) => {
+        const w = `profiles[${i}]`;
+        ['id', 'label'].forEach(f => need(p, f, w, 'string'));
+        if (profileIds.has(p.id)) err(w, `powtorzone id profilu "${p.id}"`);
+        profileIds.add(p.id);
+        if (p.default === true) defaults++;
+        if (p.side && !SIDES.includes(p.side)) err(w, `side musi byc jednym z: ${SIDES.join(', ')}`);
+        if (p.vars) Object.keys(p.vars).forEach(k => profileVars.add(k));
+      });
+      if (profileIds.size && defaults !== 1) {
+        err('profiles', `dokladnie jeden profil ma miec "default": true (jest ${defaults})`);
+      }
+    }
   }
 
   // --- zmienne: profilowe przeslaniaja presetowe, wbudowane dostarcza Patcher
@@ -205,7 +213,9 @@ function validate(preset, assetsDir) {
         err(w, '"selected" musi byc true/false albo obiektem {profil: bool}');
       } else {
         for (const [key, value] of Object.entries(item.selected)) {
-          if (key !== '*' && !profileIds.has(key)) {
+          // Nazwy sprawdzamy tylko wtedy, gdy TEN preset definiuje profile. Preset bez
+          // profili moze sie odwolac do cudzych (np. "server": false) - nie ma jak ich znac.
+          if (profileIds.size && key !== '*' && !profileIds.has(key)) {
             err(w, `"selected" wskazuje nieznany profil "${key}" (znane: ${[...profileIds].join(', ')})`);
           }
           if (typeof value !== 'boolean') err(w, `"selected.${key}" musi byc true albo false`);
