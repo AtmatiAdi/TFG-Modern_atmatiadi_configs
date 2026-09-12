@@ -17,7 +17,7 @@
   "formatVersion": 1,
   "id": "tfg-modern",
   "name": "TerraFirmaGreg-Modern - stan optymalizacyjny",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "minPatcher": "3.1.0",
 
   "pack": {
@@ -253,8 +253,34 @@
       "side": "client",
       "title": "RAM Keeper: cykliczne zwalnianie pamieci w tle gry",
       "doc": "OPTIMIZATIONS-SPEC.md sekcja H",
-      "why": "Co minute oddaje systemowi working sety pozostalych procesow i czysci liste standby; sam proces gry rusza dopiero, gdy wolny RAM spadnie ponizej progu. Wymaga uprawnien administratora - pyta o nie przy starcie gry. W profilu High odznaczone: maszyna z zapasem RAM nie ma czego odzyskiwac, a okno UAC przy kazdym starcie gry byloby placeniem za nic.",
+      "why": "Co minute oddaje systemowi working sety pozostalych procesow i czysci liste standby; sam proces gry rusza dopiero, gdy wolny RAM spadnie ponizej progu. Wymaga uprawnien administratora - pyta o nie przy starcie gry. W profilu High WYCOFYWANE: maszyna z zapasem RAM nie ma czego odzyskiwac, a okno UAC przy kazdym starcie gry byloby placeniem za nic.",
+      "_selected": [
+        "Profile maja sie wzajemnie wycofywac, nie tylko dokladac. Odznaczenie w High razem",
+        "z 'undo' ponizej znaczy: przelaczenie na High ZDEJMUJE RAM Keepera zalozonego przez",
+        "Standard (komenda startowa, katalog narzedzia), a nie tylko go nie zaklada."
+      ],
       "selected": { "high": false },
+      "undo": [
+        {
+          "op": "setKey",
+          "file": "@instance/instance.cfg",
+          "style": "ini",
+          "section": "General",
+          "key": "PreLaunchCommand",
+          "value": "",
+          "addIfMissing": false
+        },
+        {
+          "op": "setKey",
+          "file": "@instance/instance.cfg",
+          "style": "ini",
+          "section": "General",
+          "key": "OverrideCommands",
+          "value": "false",
+          "addIfMissing": false
+        },
+        { "op": "removePath", "target": "@tools/ram-keeper" }
+      ],
       "changes": [
         {
           "op": "installAsset",

@@ -13,7 +13,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const OPS = ['setKey', 'setJson', 'installAsset', 'installRelease', 'disableMods'];
+const OPS = ['setKey', 'setJson', 'installAsset', 'installRelease', 'removePath', 'disableMods', 'enableMods'];
 const STYLES = ['toml', 'properties', 'options', 'ini'];
 const SIDES = ['client', 'server', 'both'];
 const BUILTIN_VARS = ['instanceDir', 'gameDir', 'toolsDir', 'profile'];
@@ -224,10 +224,25 @@ function validate(preset, assetsDir) {
     }
 
     if (!need(item, 'changes', w, 'array')) return;
+    checkOps(item.changes, `${w}.changes`);
 
-    item.changes.forEach((c, j) => {
-      const cw = `${w}.changes[${j}]`;
-      if (!OPS.includes(c.op)) { err(cw, `nieznana operacja "${c.op}" (znane: ${OPS.join(', ')})`); return; }
+    // "undo": opcjonalny opis stanu WYLACZONEGO pozycji (PRESET-FORMAT.md par. 6) -
+    // ten sam slownik operacji, wykonywany, gdy profil albo uzytkownik wybierze "wycofaj".
+    if (item.undo !== undefined) {
+      if (!Array.isArray(item.undo) || !item.undo.length) err(w, '"undo" ma byc niepusta lista operacji');
+      else {
+        checkOps(item.undo, `${w}.undo`);
+        if (item.undo.some(c => c.op === 'setKey' && c.addIfMissing !== false)) {
+          warn(w, 'setKey w "undo" bez "addIfMissing": false dopisze klucz, ktorego pozycja nigdy nie zalozyla');
+        }
+      }
+    }
+  });
+
+  function checkOps(list, where) {
+    list.forEach((c, j) => {
+      const cw = `${where}[${j}]`;
+      if (!c || !OPS.includes(c.op)) { err(cw, `nieznana operacja "${c && c.op}" (znane: ${OPS.join(', ')})`); return; }
 
       if (c.op === 'setKey') {
         need(c, 'file', cw, 'string') && checkPath(c.file, cw + '.file');
@@ -279,8 +294,19 @@ function validate(preset, assetsDir) {
           }
         }
       }
+
+      if (c.op === 'enableMods') need(c, 'prefixes', cw, 'array');
+
+      if (c.op === 'removePath') {
+        if (need(c, 'target', cw, 'string')) {
+          checkPath(c.target, cw + '.target');
+          if (/^(@instance\/?|@tools\/?|\.?\/?)$/.test(c.target)) {
+            err(cw, `"target" wskazuje katalog glowny - tego Patcher nie usunie: "${c.target}"`);
+          }
+        }
+      }
     });
-  });
+  }
 
   // --- zmienne uzyte, ale nieznane
   strings(preset.items, 'items', (text, where) => {

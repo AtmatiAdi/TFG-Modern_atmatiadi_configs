@@ -99,6 +99,9 @@ Nieznana nazwa w klamrach = **błąd walidacji**, nie puste podstawienie. Litera
 | `{profile}` | id profilu, wg którego liczony jest **ten** preset (§4) — wybrany, a gdy preset go nie zna: jego własny `default`. Preset bez profili dostaje `standard` |
 
 Separatory ścieżek są **natywne dla systemu** — w `{toolsDir}` na Windowsie backslashe.
+Do `instance.cfg` (styl `ini`) wpisujesz je **dosłownie**, bez podwajania — Patcher sam
+koduje wartość po QSettingsowemu (`\` → `\\`, cudzysłowy gdy trzeba), bo Prism czyta ten
+plik przez `QSettings::IniFormat`, gdzie goły backslash otwiera sekwencję ucieczki.
 
 ---
 
@@ -222,6 +225,7 @@ jakiś zasób musi iść razem z configiem.
 | `why` | tak | jedno–dwa zdania widoczne w planie |
 | `changes` | tak | lista operacji, kolejność ma znaczenie |
 | `selected` | nie | czy pozycja ma być **zaznaczona domyślnie**; szczegóły niżej |
+| `undo` | nie | lista operacji opisująca stan **wyłączony** pozycji; szczegóły niżej |
 
 ### `selected` — domyślne zaznaczenie, także per profil
 
@@ -247,6 +251,43 @@ To wpływa **wyłącznie na początkowy stan pola wyboru**. Pozycja nadal jest w
 w planie ze swoim stanem, użytkownik nadal może ją zaznaczyć ręcznie, i nadal nic się nie
 dzieje bez kliknięcia. `selected` **nie jest** sposobem na ukrywanie pozycji.
 
+### `undo` — stan wyłączony; profile mają się wzajemnie wycofywać
+
+Samo `selected: false` znaczy tylko „nie zakładaj". To za mało, gdy profile są sobie
+przeciwne: ktoś zastosował Standard (RAM Keeper założony), przełącza na High — i RAM
+Keeper **zostaje**, bo High go jedynie nie zaznacza. Plan nie może być przyrostowy.
+
+`undo` to lista operacji (ten sam słownik co `changes`, §8) opisująca, jak wygląda
+instancja **bez** tej pozycji. Patcher liczy dla pozycji oba stany i pokazuje ten, który
+użytkownik wybrał — pole wyboru ma trzy położenia: **✓ zastosuj** (`changes`),
+**✕ wycofaj** (`undo`), **puste = nie ruszaj**.
+
+```json
+"selected": { "high": false },
+"undo": [
+  { "op": "setKey", "file": "@instance/instance.cfg", "style": "ini", "section": "General",
+    "key": "PreLaunchCommand", "value": "", "addIfMissing": false },
+  { "op": "setKey", "file": "@instance/instance.cfg", "style": "ini", "section": "General",
+    "key": "OverrideCommands", "value": "false", "addIfMissing": false },
+  { "op": "removePath", "target": "@tools/ram-keeper" }
+]
+```
+
+Tryb domyślny pozycji w profilu:
+
+| `selected` w profilu | `undo` | tryb startowy |
+|---|---|---|
+| `true` (domyślnie) | — | **✓ zastosuj**, gdy jest coś do zrobienia |
+| `false` | jest | **✕ wycofaj**, gdy jest coś do wycofania |
+| `false` | brak | **puste** — nie ruszaj (zachowanie sprzed `undo`) |
+
+Preset bez `undo` działa jak dotąd, a Patcher starszy niż 3.2 ignoruje nieznane pole —
+cudze manifesty niczego nie muszą zmieniać. `addIfMissing: false` w `undo` jest ważne:
+wycofanie nie ma **dopisywać** kluczy, których pozycja nigdy nie założyła.
+
+Wycofanie idzie przez dziennik tak samo, jak zastosowanie (usunięte pliki lądują w kopii
+zapasowej), więc „Cofnij ostatnie" odwraca również je.
+
 **Kolejność pozycji w `items` = kolejność wykonania.** Pozycja, która tworzy plik, musi
 stać przed pozycją, która ten plik edytuje. (Patcher i tak sprawdza stan każdej operacji
 ponownie tuż przed wykonaniem, ale to zabezpieczenie, nie zastępstwo kolejności.)
@@ -254,8 +295,10 @@ ponownie tuż przed wykonaniem, ale to zabezpieczenie, nie zastępstwo kolejnoś
 ### Stany pozycji
 
 `ok` (zrobione) · `todo` (do zmiany) · `missing` (brak celu — np. nie ma pliku configu) ·
-`error` · `skipped` (nie ta strona). Preset **nie** wpływa na to, co Patcher zaznacza:
-zaznaczane jest wyłącznie `todo`.
+`error` · `skipped` (nie ta strona). Pozycja z `undo` ma te stany **osobno dla każdej
+strony**: patrząc od strony „wycofaj", `ok` znaczy „wycofane", `todo` — „do wycofania".
+Preset **nie** wpływa na to, co Patcher zaznacza poza wyborem trybu startowego: do
+wykonania idzie wyłącznie `todo` wybranej strony.
 
 ---
 
@@ -362,6 +405,25 @@ Trafienia dzielą się na **miękkie** (klasa w pakiecie `compat/`, `integration
 (przerywają wykonanie, chyba że `--force`). Dlatego tokeny mają być **wąskie**: `xaero/`
 łapało `xaero/pac/`, czyli Open Parties and Claims — inny mod tego samego autora.
 
+### `enableMods` — odwrotność `disableMods` (`.jar.disabled` → `.jar`)
+
+```json
+{ "op": "enableMods", "prefixes": ["xaerominimap", "xaeroworldmap"] }
+```
+
+Bez skanu — włączenie moda niczego nie pozbawia klas. Typowe miejsce: `undo` pozycji
+z `disableMods`.
+
+### `removePath` — usunięcie pliku albo katalogu
+
+```json
+{ "op": "removePath", "target": "@tools/ram-keeper" }
+```
+
+Odwrotność `installAsset`. Każdy usuwany plik trafia do kopii zapasowej z wpisem
+w dzienniku, więc „Cofnij ostatnie" odtwarza całość. Katalog główny instancji, gry
+i narzędzi nie są dozwolonym celem (błąd walidacji, a przy wykonaniu — odmowa).
+
 ---
 
 ## 9. Narzędzia (grupa `tools`)
@@ -404,3 +466,7 @@ Manifest bez profili przechodzi walidację; brak grup to nadal błąd.
   Format 2 nie usunie formatu 1 — dodanie obsługi nowego nie może zabrać starego, bo
   ludzie mają w cache stare manifesty i grają offline.
 - Zmiana znaczenia istniejącego `op` bez podbicia `formatVersion` jest **zabroniona**.
+- `undo`, `removePath` i `enableMods` przyszły z Patcherem **3.2.0** bez podbicia formatu:
+  starszy Patcher nie zna pola `undo` i go pomija (pozycja jest wtedy tylko odznaczona,
+  jak dawniej), a `changes` bez nowych operacji czyta jak zawsze. Dopiero preset, który
+  używa `removePath`/`enableMods` **w `changes`**, musi podnieść `minPatcher` do `3.2.0`.

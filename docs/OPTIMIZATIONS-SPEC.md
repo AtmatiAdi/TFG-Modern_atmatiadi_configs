@@ -161,9 +161,13 @@ Co 60 sekund, dopóki proces gry żyje:
 - **Dlaczego nie RAMMap.** Narzędzie Sysinternals robi dokładnie to samo przez te same
   API. Własny skrypt (8 KB) znaczy: nic do pobierania, nic do licencjonowania, nic, co
   mogłoby zniknąć z serwera producenta.
-- **W profilu `high` pozycja jest domyślnie ODZNACZONA** (`"selected": { "high": false }`).
+- **W profilu `high` pozycja jest WYCOFYWANA** (`"selected": { "high": false }` + `undo`).
   High to maszyna z zapasem RAM — nie ma czego odzyskiwać, a okno UAC przy każdym starcie
-  gry byłoby płaceniem za nic. Pozycja zostaje widoczna i można ją zaznaczyć ręcznie.
+  gry byłoby płaceniem za nic. Samo odznaczenie nie wystarczało: kto raz zastosował
+  Standard, a potem przełączył na High, zostawał z RAM Keeperem i bez sposobu na jego
+  zdjęcie. `undo` czyści `PreLaunchCommand`, ustawia `OverrideCommands=false` i usuwa
+  katalog narzędzia (preset 3.1.0, Patcher 3.2.0). Pozycja zostaje widoczna i w każdym
+  profilu można ją ręcznie przestawić na „zastosuj" albo „nie ruszaj".
 - **NIE ustawiać `-TrimGameAlways`** bez powodu. Agresywny trim procesu gry co minutę to
   mikroprzycięcia w zamian za pamięć, której nikt w tej chwili nie potrzebuje.
 - **To dokładka, nie zamiennik.** Trim nie zmniejsza zapotrzebowania gry na pamięć —
