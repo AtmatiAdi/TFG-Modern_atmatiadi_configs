@@ -1,26 +1,17 @@
 # Shaderpack
 
-Ten katalog jest **pusty celowo**. Pakiet waży 2,2 MB i leży już w repozytorium Patchera —
-nie ma powodu, żeby ta sama binarka trafiła drugi raz do historii gita.
-
-Przy zakładaniu tego repozytorium skopiuj go tutaj:
-
-```powershell
-Copy-Item C:\Projects\TFG-Modern_Patcher\assets\shaderpacks\* .
-```
-
-Mają się pojawić dwa pliki:
+Tu leży pakiet shaderów, który jedzie z wydaniem presetu. Dwa pliki:
 
 ```
-TerraFirmaGreg-Shaders-Complementary-3.1.5.zip       2,2 MB   <- pakiet
-TerraFirmaGreg-Shaders-Complementary-3.1.5.zip.txt   600 B    <- ustawienia (profil "light")
+TFG_OPTIMISED_Complementary-3.1.5.zip       2,2 MB   <- pakiet
+TFG_OPTIMISED_Complementary-3.1.5.zip.txt   600 B    <- ustawienia (profil "light")
 ```
 
 Dopóki ich nie ma, `build/pack.ps1` **przerwie** z komunikatem:
 
 ```
 BLAD   items (shaderpack): brak zalacznika pasujacego do
-       "TerraFirmaGreg-Shaders-Complementary-3.1.5.zip" w ...\dist
+       "TFG_OPTIMISED_Complementary-3.1.5.zip" w ...\dist
 ```
 
 To jest zamierzone — lepiej nie wydać nic, niż wydać preset obiecujący plik, którego
@@ -41,3 +32,7 @@ w wydaniu nie będzie.
   strażnikiem dla instancji, w których pakiet siedzi po swojemu — nie dubluje tej roboty.
 - Oba pliki wgrywane są **tylko gdy ich nie ma** (`onlyIfMissing`) — nie nadpisujemy
   cudzych ustawień shaderów.
+- **Nazwa zaczyna się od `TFG_OPTIMISED_`**, żeby w liście shaderów w grze było od razu
+  widać, że to nasz, przycięty pakiet, a nie czysty Complementary. Poprzednia nazwa
+  (`TerraFirmaGreg-Shaders-Complementary-3.1.5.zip`) jest przez pozycję `shaderpack`
+  usuwana z instancji (`removePath`), żeby nie zostały dwie kopie tego samego pakietu.

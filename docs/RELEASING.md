@@ -22,8 +22,8 @@ Powstaje wydanie z tagiem `preset-<wersja>` i załącznikami:
 ```
 preset-3.0.0.json                                     11 KB   <- Patcher pobiera zawsze
 ram-keeper-3.0.0.zip                                   8 KB   <- gdy zaznaczysz narzedzie
-TerraFirmaGreg-Shaders-Complementary-3.1.5.zip      2190 KB   <- gdy zaznaczysz shadery
-TerraFirmaGreg-Shaders-Complementary-3.1.5.zip.txt     1 KB
+TFG_OPTIMISED_Complementary-3.1.5.zip      2190 KB   <- gdy zaznaczysz shadery
+TFG_OPTIMISED_Complementary-3.1.5.zip.txt     1 KB
 ```
 
 **Manifest i jego załączniki muszą być w tym samym wydaniu** — `installAsset` szuka

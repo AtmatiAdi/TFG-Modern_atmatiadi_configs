@@ -17,8 +17,8 @@
   "formatVersion": 1,
   "id": "tfg-modern",
   "name": "TerraFirmaGreg-Modern - stan optymalizacyjny",
-  "version": "3.1.0",
-  "minPatcher": "3.1.0",
+  "version": "3.2.0",
+  "minPatcher": "3.2.0",
 
   "pack": {
     "minecraft": "1.20.1",
@@ -30,7 +30,7 @@
   "docs": "https://github.com/AtmatiAdi/TerraFirmaGreg-Modern_Presets/blob/master/docs/OPTIMIZATIONS-SPEC.md",
 
   "vars": {
-    "shaderpack": "TerraFirmaGreg-Shaders-Complementary-3.1.5.zip",
+    "shaderpack": "TFG_OPTIMISED_Complementary-3.1.5.zip",
 
     "_jvmArgs": [
       "Flagi JVM - OPTIMIZATIONS-SPEC.md sekcja D. Zmierzone: commit 13,1 -> 10,1 GB.",
@@ -208,17 +208,25 @@
     },
 
     {
+      "_": [
+        "Pakiet nazywal sie wczesniej TerraFirmaGreg-Shaders-Complementary-3.1.5.zip - dwa",
+        "removePath na koncu sprzataja te kopie z instancji, zeby nie lezaly dwa identyczne",
+        "pakiety pod roznymi nazwami. Usuwane pliki laduja w dzienniku, wiec --revert je oddaje.",
+        "removePath w 'changes' wymaga Patchera 3.2.0 - stad minPatcher."
+      ],
       "id": "shaderpack",
       "group": "mods",
       "side": "client",
       "title": "Shaderpack {shaderpack}",
       "doc": "OPTIMIZATIONS-SPEC.md sekcja B + F",
-      "why": "Pakietu NIE MA w bazowej paczce z CurseForge - dolozylismy go recznie.",
+      "why": "Pakietu NIE MA w bazowej paczce z CurseForge - dolozylismy go recznie. Nazwa TFG_OPTIMISED_ mowi w grze od razu, ze to nasz przyciety pakiet.",
       "changes": [
         { "op": "installAsset", "asset": "{shaderpack}", "target": "shaderpacks/{shaderpack}", "onlyIfMissing": true },
         { "op": "installAsset", "asset": "{shaderpack}.txt", "target": "shaderpacks/{shaderpack}.txt", "onlyIfMissing": true },
         { "op": "setKey", "file": "config/oculus.properties", "style": "properties", "key": "shaderPack", "value": "{shaderpack}" },
-        { "op": "setKey", "file": "config/oculus.properties", "style": "properties", "key": "enableShaders", "value": "true" }
+        { "op": "setKey", "file": "config/oculus.properties", "style": "properties", "key": "enableShaders", "value": "true" },
+        { "op": "removePath", "target": "shaderpacks/TerraFirmaGreg-Shaders-Complementary-3.1.5.zip" },
+        { "op": "removePath", "target": "shaderpacks/TerraFirmaGreg-Shaders-Complementary-3.1.5.zip.txt" }
       ]
     },
 

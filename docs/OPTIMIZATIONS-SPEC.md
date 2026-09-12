@@ -116,6 +116,10 @@ mają być identyczne** — to była świadoma decyzja, żeby przestać debugowa
   nieszkodliwy (Euphoria jest już wbudowana w pakiet), ale inne mody deklarują od niego
   zależność.
 - Pliki wgrywane są **tylko gdy ich nie ma** — nie nadpisujemy cudzych ustawień shaderów.
+- **Nazwa pakietu zaczyna się od `TFG_OPTIMISED_`** — w liście shaderów w grze od razu
+  widać, że to nasz, przycięty pakiet. Poprzednia nazwa
+  (`TerraFirmaGreg-Shaders-Complementary-3.1.5.zip` + `.txt`) jest usuwana z instancji
+  (`removePath`, kopia w dzienniku), żeby nie leżały dwie kopie tego samego pakietu.
 
 ### Mody z wydań (`mod-*`)
 - Operacja `installRelease` w `preset.json`, po jednej pozycji na mod: repozytorium

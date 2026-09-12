@@ -74,7 +74,7 @@ listy flag dały się czytać i recenzować w diffie po jednej na linię).
 
 ```json
 "vars": {
-  "shaderpack": "TerraFirmaGreg-Shaders-Complementary-3.1.5.zip",
+  "shaderpack": "TFG_OPTIMISED_Complementary-3.1.5.zip",
   "jvmArgs": ["-XX:+UseG1GC", "-XX:MaxGCPauseMillis=50"]
 }
 ```
